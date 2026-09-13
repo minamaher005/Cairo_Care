@@ -1,0 +1,39 @@
+{
+  "نفسي": {
+    "مصر-الجديدة": [
+      {
+        "name": "هناء زغلول",
+        "title": "خبيرة نفسية",
+        "description": "خبير نفسي",
+        "fees": "٨٠٠",
+        "rating": 4.9,
+        "ratings_count": 19,
+        "address": "مصر الجديدة: ش اسماء فهمي",
+        "profile_url": "https://www.vezeeta.com/ar/dr/خبير-نفسي-هناء-زغلول-نفسي",
+        "sponsored": false
+      },
+      {
+        "name": "حسام احمد",
+        "title": "خبير نفسي",
+        "description": " الصحة النفسيه والارشاد الاسري\nلايف كوتش معتمد من الاتحاد الدولي للكوتشينج ",
+        "fees": "٥٠٠",
+        "rating": 4.8,
+        "ratings_count": 20,
+        "address": "مصر الجديدة: شا ع الروضه",
+        "profile_url": "https://www.vezeeta.com/ar/dr/خبير-نفسي-حسام-احمد-نفسي",
+        "sponsored": false
+      },
+      {
+        "name": "إيمان سعد",
+        "title": "دكتورة",
+        "description": "أخصائي الطب النفسي والعلاج الزواجي",
+        "fees": "٣,٩٠٠",
+        "rating": 4.8,
+        "ratings_count": 17,
+        "address": "مصر الجديدة: شارع الخليفه المأمون",
+        "profile_url": "https://www.vezeeta.com/ar/dr/دكتورة-ايمان-سعد-نفسي-1",
+        "sponsored": false
+      }
+    ]
+  }
+}
