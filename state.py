@@ -1,18 +1,3 @@
-"""
-state.py
---------
-LangGraph state schema for the Cairo Care agent.
-
-الاستخدام:
-    from Cairo_Care.state import CairoState, merge_doctors
-
-    # إنشاء state فاضي
-    state: CairoState = {"messages": [], "doctors": [], "query": ""}
-
-    # دمج نتائج جديدة في قائمة الدكاترة
-    new_doctors = search_vezeeta_doctors.invoke(...)
-    state["doctors"] = merge_doctors(state["doctors"], new_doctors)
-"""
 
 from typing import Annotated, Any
 from typing_extensions import TypedDict
@@ -24,25 +9,13 @@ except ImportError:  # fallback لو langgraph مش متاح
         return left + right
 
 
-# ---------------------------------------------------------------------------
-# Reducer: بيجمع نتائج الدكاترة من أكتر من استدعاء للـ tool
-# ---------------------------------------------------------------------------
-
 def merge_doctors(existing: list[dict], new: list[dict]) -> list[dict]:
-    """
-    يضم نتائج جديدة لقائمة الدكاترة الموجودة.
 
-    - بيتجنب التكرار بناءً على profile_url
-    - بيحتفظ بالترتيب (القديم الأول)
-    """
     seen_urls: set[str] = {doc.get("profile_url", "") for doc in existing}
     unique_new = [doc for doc in new if doc.get("profile_url", "") not in seen_urls]
     return existing + unique_new
 
 
-# ---------------------------------------------------------------------------
-# CairoState — الـ TypedDict الرئيسي للـ LangGraph state
-# ---------------------------------------------------------------------------
 
 class CairoState(TypedDict):
     """
