@@ -1,0 +1,7 @@
+langchain
+langchain-ollama
+langchain-qdrant
+qdrant-client
+pandas
+python-dotenv
+requests
