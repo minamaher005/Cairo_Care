@@ -1,0 +1,12 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+.venv/
+
+# Env file (secrets)
+.env
+
+# Qdrant on-disk data
+qdrant_storage/
