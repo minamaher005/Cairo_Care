@@ -1,32 +1,4 @@
-"""
-vezeeta_tool.py
----------------
-LangChain tool wrapping the Vezeeta doctor scraper.
-بيحفظ النتائج في ملف JSON هيكله:
-{
-    "نفسي": {
-        "مصر-الجديدة": [ {doctor}, {doctor}, ... ],
-        "المعادي":      [ {doctor}, ... ]
-    },
-    "اسنان": {
-        "الدقي-والمهندسين": [ {doctor}, ... ]
-    }
-}
 
-الاستخدام:
-    from Cairo_Care.vezeeta_tool import search_vezeeta_doctors
-
-    # استدعاء مباشر
-    result = search_vezeeta_doctors.invoke({
-        "specialty": "نفسي",
-        "area": "مصر-الجديدة",
-        "top_n": 5,
-    })
-    # result -> list[dict]
-
-    # ربط بأي LLM يدعم tool-calling
-    llm_with_tools = llm.bind_tools([search_vezeeta_doctors])
-"""
 
 import json
 import sys
@@ -79,12 +51,7 @@ def _merge_into_cache(
     area: str,
     new_doctors: list[dict],
 ) -> list[dict]:
-    """
-    يدمج الدكاترة الجدد في الـ cache تحت specialty → area.
-    - بيتجنب التكرار بناءً على profile_url
-    - بيحتفظ بالترتيب (الأقدم أولاً)
-    يرجع القائمة المدمجة النهائية.
-    """
+
     existing: list[dict] = cache.get(specialty, {}).get(area, [])
     seen_urls: set[str] = {d.get("profile_url", "") for d in existing}
     unique_new = [d for d in new_doctors if d.get("profile_url", "") not in seen_urls]
@@ -97,9 +64,6 @@ def _merge_into_cache(
     return merged
 
 
-# ---------------------------------------------------------------------------
-# LangChain @tool
-# ---------------------------------------------------------------------------
 
 @tool
 def search_vezeeta_doctors(
@@ -107,7 +71,7 @@ def search_vezeeta_doctors(
     area: str,
     top_n: int = 5,
     include_sponsored: bool = False,
-) -> list[dict]:
+) -> str:
     """
     Search Vezeeta for the top-rated doctors by medical specialty and Cairo area.
 
@@ -115,18 +79,10 @@ def search_vezeeta_doctors(
     clinics, or specialists on Vezeeta in a specific area of Cairo.
 
     Results are persisted in a local JSON cache file (doctors_cache.json) structured
-    as specialty → area → list of doctors, so repeated calls accumulate data.
+    as specialty -> area -> list of doctors, so repeated calls accumulate data.
 
-    Returns a list of doctor dictionaries, each containing:
-      - name:          Full doctor name (Arabic)
-      - title:         Title prefix e.g. 'دكتور' / 'دكتورة' / 'خبير نفسي'
-      - description:   Short bio / specialty description
-      - fees:          Consultation fee in Arabic numerals (e.g. '٨٠٠')
-      - rating:        Overall rating out of 5.0
-      - ratings_count: Number of patient ratings
-      - address:       Clinic address (area + street)
-      - profile_url:   Full Vezeeta profile URL
-      - sponsored:     Whether this is a paid/sponsored listing
+    Returns a formatted Arabic text block listing each doctor with:
+      name, title, specialty description, fees, rating, address, profile URL.
 
     Args:
         specialty: Arabic specialty slug matching the Vezeeta URL format.
@@ -138,7 +94,15 @@ def search_vezeeta_doctors(
         top_n:     Maximum number of doctors to return, sorted by rating (default 5)
         include_sponsored: Whether to include paid/sponsored listings (default False)
     """
-    # 1. جيب النتائج من فيزيتا
+    # 1. ابحث في الـ cache الأول — لو في نتائج مخزّنة ارجع بيها بدون scraping
+    cache = _load_cache()
+    cached = cache.get(specialty, {}).get(area, [])
+    if cached:
+        if not include_sponsored:
+            cached = [d for d in cached if not d.get("sponsored", False)]
+        return _format_doctors(cached[:top_n], specialty, area)
+
+    # 2. الـ cache miss — اعمل scraping
     new_doctors = search_doctors(
         specialty=specialty,
         area=area,
@@ -146,12 +110,29 @@ def search_vezeeta_doctors(
         include_sponsored=include_sponsored,
     )
 
-    # 2. حمّل الـ cache الحالي، ادمج، واحفظ
-    cache = _load_cache()
+    # 3. ادمج في الـ cache واحفظ
     merged = _merge_into_cache(cache, specialty, area, new_doctors)
     _save_cache(cache)
 
+    return _format_doctors(merged, specialty, area)
 
-    return new_doctors
 
+def _format_doctors(doctors: list, specialty: str, area: str) -> str:
+    """Format a list of doctor dicts into a readable Arabic text block."""
+    if not doctors:
+        return f"لم يتم العثور على أطباء في تخصص '{specialty}' بمنطقة '{area}'."
 
+    lines = [f"نتائج البحث عن دكتور {specialty} في {area}:\n"]
+    for i, d in enumerate(doctors, 1):
+        rating = d.get('rating', 'N/A')
+        count  = d.get('ratings_count', 0)
+        stars  = f"{rating}/5.0 ({count} تقييم)" if rating != 'N/A' else 'غير متوفر'
+        lines.append(
+            f"{i}. {d.get('title','')} {d.get('name','N/A')}\n"
+            f"   التخصص: {d.get('description', 'N/A')}\n"
+            f"   التقييم: {stars}\n"
+            f"   الرسوم: {d.get('fees', 'غير محدد')} جنيه\n"
+            f"   العنوان: {d.get('address', 'N/A')}\n"
+            f"   الحجز: {d.get('profile_url', 'N/A')}"
+        )
+    return "\n\n".join(lines)

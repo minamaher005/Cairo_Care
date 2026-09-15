@@ -1,5 +1,4 @@
-
-from typing import Annotated, Any
+from typing import Annotated
 from typing_extensions import TypedDict
 
 try:
@@ -9,29 +8,38 @@ except ImportError:  # fallback لو langgraph مش متاح
         return left + right
 
 
-def merge_doctors(existing: list[dict], new: list[dict]) -> list[dict]:
+# ── Reducers ──────────────────────────────────────────────────────────────────
 
+def merge_doctors(existing: list[dict], new: list[dict]) -> list[dict]:
+    """Merge incoming doctors, deduplicating by profile_url."""
     seen_urls: set[str] = {doc.get("profile_url", "") for doc in existing}
     unique_new = [doc for doc in new if doc.get("profile_url", "") not in seen_urls]
     return existing + unique_new
 
 
+def merge_hospitals(existing: list[dict], new: list[dict]) -> list[dict]:
+    """Merge incoming hospitals, deduplicating by name."""
+    seen_names: set[str] = {h.get("name", "") for h in existing}
+    unique_new = [h for h in new if h.get("name", "") not in seen_names]
+    return existing + unique_new
+
+
+# ── State schema ──────────────────────────────────────────────────────────────
 
 class CairoState(TypedDict):
     """
     State للـ Cairo Care LangGraph agent.
 
     الحقول:
-        messages: سجل المحادثة (يُدار بـ add_messages reducer من LangGraph)
-        doctors:  قائمة دكاترة مجمّعة من استدعاءات الـ tool
-                  كل عنصر dict يحتوي: name, title, description, fees,
-                  rating, ratings_count, address, profile_url, sponsored
-        query:    آخر سؤال المستخدم (للرجوع إليه في أي node)
+        messages:  سجل المحادثة الكامل — يُدار تلقائياً بـ add_messages
+        doctors:   دكاترة مجمّعة من Vezeeta، مُزالة التكرار بـ profile_url
+                   كل dict: name, title, description, fees,
+                   rating, ratings_count, address, profile_url, sponsored
+        hospitals: مستشفيات مجمّعة من Qdrant، مُزالة التكرار بـ name
+                   كل dict: name, address, specialty, phone, website
+        query:     آخر سؤال المستخدم
     """
-    messages: Annotated[list, add_messages]
-    doctors:  Annotated[list[dict], merge_doctors]
-    hospitals: Annotated[list[dict], add_messages]
-    query:    str
-
-
-
+    messages:  Annotated[list, add_messages]
+    doctors:   Annotated[list[dict], merge_doctors]
+    hospitals: Annotated[list[dict], merge_hospitals]
+    query:     str
