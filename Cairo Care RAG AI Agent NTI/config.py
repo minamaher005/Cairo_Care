@@ -12,6 +12,7 @@ OLLAMA_BASE_URL = os.getenv(
 
 OLLAMA_LLM_MODEL = os.getenv("OLLAMA_LLM_MODEL")
 OLLAMA_EMBEDDING_MODEL = os.getenv("OLLAMA_EMBEDDING_MODEL")
+LOCATIONIQ_API_KEY = os.getenv("LOCATIONIQ_API_KEY")
 
 # Qdrant configuration
 QDRANT_URL = os.getenv(

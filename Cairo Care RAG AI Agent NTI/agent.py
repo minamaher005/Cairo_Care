@@ -16,6 +16,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from Cairo_Care.vezeeta_tool import search_vezeeta_doctors
 from Cairo_Care.state import CairoState
 from config import OLLAMA_BASE_URL, OLLAMA_LLM_MODEL
+from location_tools import get_user_coordinates, find_nearest_hospitals, get_driving_route
 from vector_store import get_vector_store
 
 
@@ -86,6 +87,14 @@ SYSTEM_PROMPT = """\
 3. بعد معرفة المنطقة، استخدم `search_vezeeta_doctors` للبحث.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## الموقع والمسارات
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+إذا ذكر المستخدم موقعه أو طلب أقرب مستشفى:
+1. استخدم `get_user_coordinates` لتحويل اسم المنطقة إلى إحداثيات.
+2. استخدم `find_nearest_hospitals` للعثور على أقرب المستشفيات.
+3. استخدم `get_driving_route` فقط عند الحاجة لمقارنة زمن القيادة بين مستشفيين.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ## قواعد العرض
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 - عند عرض الأطباء: اذكر الاسم، التخصص، التقييم، الرسوم، العنوان، ورابط الحجز.
@@ -148,7 +157,13 @@ def create_cairo_care_agent():
     # Assemble the agent: model + tools + system prompt + memory
     agent = create_agent(
         model=llm,
-        tools=[search_hospitals, search_vezeeta_doctors],
+        tools=[
+            search_hospitals,
+            search_vezeeta_doctors,
+            get_user_coordinates,
+            find_nearest_hospitals,
+            get_driving_route,
+        ],
         system_prompt=SYSTEM_PROMPT,
         checkpointer=checkpointer,
         state_schema=CairoState,
