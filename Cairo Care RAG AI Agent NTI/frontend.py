@@ -1,4 +1,3 @@
-
 import streamlit as st
 import requests
 import uuid
@@ -92,25 +91,8 @@ body,
    Header
    ========================= */
 
-.cc-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-
-    padding: 18px 22px;
-
-    background: var(--cc-white);
-
-    border: 1px solid var(--cc-blue-pale);
-    border-radius: 16px;
-
-    box-shadow: 0 4px 18px rgba(11, 61, 102, 0.08);
-
-    margin-bottom: 22px;
-}
-
-.cc-header .cc-icon {
-    font-size: 34px;
+.cc-icon {
+    font-size: 32px;
 
     background: var(--cc-blue-pale);
 
@@ -126,46 +108,61 @@ body,
     flex-shrink: 0;
 }
 
-.cc-header h1 {
-    color: var(--cc-navy) !important;
+.cc-title {
+    color: var(--cc-navy);
     font-size: 22px;
+    font-weight: 700;
+
     margin: 0;
+    padding: 0;
+
+    direction: rtl;
+    text-align: right;
 }
 
-.cc-header p {
-    color: var(--cc-gray) !important;
-    margin: 2px 0 0 0;
+.cc-subtitle {
+    color: var(--cc-gray);
+
     font-size: 14px;
+
+    margin-top: 4px;
+
+    direction: rtl;
+    text-align: right;
 }
 
 
 /* =========================
-   Status Badge
+   Status
    ========================= */
 
-.cc-badge {
-    display: inline-block;
-
-    padding: 4px 12px;
-
-    border-radius: 999px;
-
-    font-size: 12px;
-    font-weight: 600;
-
-    margin-top: 6px;
+.status-container {
+    direction: rtl;
+    text-align: right;
 }
 
-.cc-badge-ok {
-    background: #e4f6ec;
-    color: #1c7a4d !important;
-    border: 1px solid #bfe9d2;
+
+/* =========================
+   Streamlit Success/Error
+   ========================= */
+
+div[data-testid="stAlert"] {
+    border-radius: 999px !important;
+
+    padding: 4px 12px !important;
+
+    min-height: auto !important;
+
+    margin-top: 6px !important;
+
+    width: fit-content !important;
+
+    direction: rtl;
 }
 
-.cc-badge-err {
-    background: #fdeaea;
-    color: #b3261e !important;
-    border: 1px solid #f6c6c4;
+div[data-testid="stAlert"] p {
+    font-size: 12px !important;
+    font-weight: 600 !important;
 }
 
 
@@ -436,23 +433,6 @@ def check_backend():
 backend_online = check_backend()
 
 
-if backend_online:
-
-    status_html = (
-        '<span class="cc-badge cc-badge-ok">'
-        '● المساعد متصل'
-        '</span>'
-    )
-
-else:
-
-    status_html = (
-        '<span class="cc-badge cc-badge-err">'
-        '● المساعد غير متصل'
-        '</span>'
-    )
-
-
 # =========================================================
 # Sidebar
 # =========================================================
@@ -525,32 +505,60 @@ with st.sidebar:
 # Header
 # =========================================================
 
-st.markdown(
-    f"""
-    <div class="cc-header rtl">
+with st.container(border=True):
 
-        <div class="cc-icon">
-            🏥
-        </div>
+    header_icon, header_info = st.columns(
+        [0.12, 0.88],
+        vertical_alignment="center"
+    )
 
-        <div>
+    # =========================
+    # Header Icon
+    # =========================
 
-            <h1>
+    with header_icon:
+
+        st.markdown(
+            """
+            <div class="cc-icon">
+                🏥
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    # =========================
+    # Header Information
+    # =========================
+
+    with header_info:
+
+        st.markdown(
+            """
+            <div class="cc-title">
                 Cairo Care
-            </h1>
+            </div>
 
-            <p>
+            <div class="cc-subtitle">
                 مساعدك لإيجاد المستشفيات والأطباء المناسبين في القاهرة
-            </p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-            {status_html}
+        if backend_online:
 
-        </div>
+            st.success(
+                "المساعد متصل",
+                icon="🟢"
+            )
 
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+        else:
+
+            st.error(
+                "المساعد غير متصل",
+                icon="🔴"
+            )
 
 
 # =========================================================
@@ -797,10 +805,8 @@ user_input = st.chat_input(
     "اكتب سؤالك هنا..."
 )
 
-
 if user_input:
 
     handle_question(
         user_input
     )
-
