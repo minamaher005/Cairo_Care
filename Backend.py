@@ -40,6 +40,11 @@ async def chat_stream(request: ChatRequest):
                 stream_mode="messages",
             ):
                 if msg.content and isinstance(msg.content, str):
+                    # Hide internal tool calls that return ugly raw data (like get_user_coordinates)
+                    # Stream all other ToolMessages because they contain beautifully formatted Arabic text
+                    if msg.__class__.__name__ == "ToolMessage" and getattr(msg, "name", "") == "get_user_coordinates":
+                        continue
+                    
                     # Wrap token in JSON to safely handle newlines/special chars in SSE
                     yield f"data: {json.dumps({'token': msg.content})}\n\n"
         except Exception as e:

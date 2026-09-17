@@ -57,5 +57,64 @@
         "sponsored": false
       }
     ]
+  },
+  "مخ-واعصاب": {
+    "المعادي": [
+      {
+        "name": "مى فتحى",
+        "title": "دكتورة",
+        "description": "استشارى مخ واعصاب ",
+        "fees": "١,٠٠٠",
+        "rating": 5.0,
+        "ratings_count": 1,
+        "address": "المعادي: ش الدكتور احمد حسين مجاورة (5) زهراء المعادى-المعراج العلوى",
+        "profile_url": "https://www.vezeeta.com/ar/dr/دكتورة-مى-فتحى-مخ-واعصاب",
+        "sponsored": false
+      },
+      {
+        "name": "اسلام شاهين",
+        "title": "دكتور",
+        "description": "مدرس مساعد واخصائي مخ و اعصاب ",
+        "fees": "٦٠٠",
+        "rating": 5.0,
+        "ratings_count": 1,
+        "address": "المعادي: طريق النصر",
+        "profile_url": "https://www.vezeeta.com/ar/dr/دكتور-اسلام-شاهين-مخ-واعصاب-1",
+        "sponsored": false
+      },
+      {
+        "name": "محمد شوره",
+        "title": "دكتور",
+        "description": "استشاري طب المخ و الاعصاب و اعصاب الاطفال",
+        "fees": "٧٠٠",
+        "rating": 4.9,
+        "ratings_count": 418,
+        "address": "المعادي: شارع المنشاوي من شارع النصر",
+        "profile_url": "https://www.vezeeta.com/ar/dr/دكتور-محمد--شوره-مخ-واعصاب",
+        "sponsored": false
+      },
+      {
+        "name": "هايدي الشيباوي",
+        "title": "دكتورة",
+        "description": "استشاري ومدرس امراض المخ والاعصاب بكلية طب القصر العيني، جامعة القاهرة.",
+        "fees": "٨٠٠",
+        "rating": 4.9,
+        "ratings_count": 214,
+        "address": "المعادي: شارع اللاسلكي -المعادي الجديده",
+        "profile_url": "https://www.vezeeta.com/ar/dr/دكتورة-هايدي-الشيباوي-مخ-واعصاب",
+        "sponsored": false
+      },
+      {
+        "name": "احمد الزيات",
+        "title": "دكتور",
+        "description": "استشاري طب المخ و الاعصاب",
+        "fees": "٦٠٠",
+        "rating": 4.8,
+        "ratings_count": 304,
+        "address": "المعادي: شارع كارفور - زهراء المعادي",
+        "profile_url": "https://www.vezeeta.com/ar/dr/دكتور-احمد-الزيات-مخ-واعصاب",
+        "sponsored": false
+      }
+    ]
   }
 }
