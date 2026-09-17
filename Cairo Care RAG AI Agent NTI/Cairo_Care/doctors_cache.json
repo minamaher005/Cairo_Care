@@ -1,0 +1,61 @@
+{
+  "نفسي": {
+    "مدينة-نصر": [
+      {
+        "name": "ندي عادل",
+        "title": "خبيرة نفسية",
+        "description": "معالج نفسي",
+        "fees": "٦٠٠",
+        "rating": 4.8,
+        "ratings_count": 6,
+        "address": "مدينة نصر: شارع ابن النفيس امتداد احمد فخري",
+        "profile_url": "https://www.vezeeta.com/ar/dr/خبيرة-نفسية-ندي-عادل-نفسي",
+        "sponsored": false
+      },
+      {
+        "name": "رانيا سامي",
+        "title": "خبيرة نفسية",
+        "description": "معالج و اخصائي الصحة النفسية و علاج الأدمان",
+        "fees": "٦٥٠",
+        "rating": 4.7,
+        "ratings_count": 165,
+        "address": "مدينة نصر: شارع عباس العقاد",
+        "profile_url": "https://www.vezeeta.com/ar/dr/خبيرة-نفسية-رانيا-سامي-نفسي",
+        "sponsored": false
+      },
+      {
+        "name": "اماني مصطفى",
+        "title": "دكتورة",
+        "description": "إستشاري الطب النفسي و علاج الإدمان - البورد العربي في الطب النفسي",
+        "fees": "٩٠٠",
+        "rating": 4.7,
+        "ratings_count": 58,
+        "address": "مدينة نصر: شارع الطيران",
+        "profile_url": "https://www.vezeeta.com/ar/dr/دكتورة-اماني-مصطفى-نفسي-1",
+        "sponsored": false
+      },
+      {
+        "name": "عبد الرحمن ترك",
+        "title": "خبير نفسي",
+        "description": "خبير نفسي",
+        "fees": "٨٠٠",
+        "rating": 4.6,
+        "ratings_count": 164,
+        "address": "مدينة نصر: شارع افريقيا",
+        "profile_url": "https://www.vezeeta.com/ar/dr/دكتور-عبد-الرحمن-ترك-نفسي",
+        "sponsored": false
+      },
+      {
+        "name": "أمينة لطفي",
+        "title": "دكتورة",
+        "description": "استشاري الطب النفسي و العلاج المعرفي السلوكي و الجدلي",
+        "fees": "١,٥٠٠",
+        "rating": 4.6,
+        "ratings_count": 137,
+        "address": "مدينة نصر: شارع عطية الصوالحي",
+        "profile_url": "https://www.vezeeta.com/ar/dr/دكتور-أمينة-لطفي-نفسي-1",
+        "sponsored": false
+      }
+    ]
+  }
+}

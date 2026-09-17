@@ -3,8 +3,8 @@ import math
 import requests
 from langchain.tools import tool
 
-from config import LOCATIONIQ_API_KEY
-from vector_store import get_vector_store
+from config import LOCATIONIQ_API_KEY, QDRANT_COLLECTION
+from vector_store import get_qdrant_client
 
 
 LOCATIONIQ_BASE = "https://us1.locationiq.com/v1"
@@ -63,7 +63,17 @@ def get_user_coordinates(location_name: str) -> str:
 def find_nearest_hospitals(user_lat: float, user_lon: float, specialty: str = "") -> str:
     """Return the three closest hospitals to coordinates from the local database."""
     try:
-        metadata_rows = get_vector_store()._collection.get(include=["metadatas"])["metadatas"]
+        client = get_qdrant_client()
+        records, _ = client.scroll(
+            collection_name=QDRANT_COLLECTION,
+            limit=10000,
+            with_payload=True,
+            with_vectors=False,
+        )
+        metadata_rows = [
+            record.payload.get("metadata", record.payload) 
+            for record in records if record.payload
+        ]
     except Exception as exc:
         return f"⚠️ تعذر قراءة قاعدة بيانات المستشفيات: {exc}"
 
@@ -103,8 +113,7 @@ def find_nearest_hospitals(user_lat: float, user_lon: float, specialty: str = ""
         f"   📏 المسافة: {hospital['distance_km']} كم\n"
         f"   📍 العنوان: {hospital['address']}\n"
         f"   🏥 التخصص: {hospital['specialty']}\n"
-        f"   📞 الهاتف: {hospital['phone']}\n"
-        f"   📌 الإحداثيات: {hospital['lat']}, {hospital['lon']}"
+        f"   📞 الهاتف: {hospital['phone']}"
         for index, hospital in enumerate(nearest, 1)
     )
 

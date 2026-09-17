@@ -5,3 +5,7 @@ qdrant-client
 pandas
 python-dotenv
 requests
+fastapi
+uvicorn
+streamlit
+pydantic
