@@ -23,6 +23,124 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     return earth_radius_km * 2 * math.atan2(math.sqrt(value), math.sqrt(1 - value))
 
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Cairo District & Vezeeta Area Mapping
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CAIRO_DISTRICT_PATTERNS = [
+    (("معادي", "maadi"), "المعادي", "المعادي"),
+    (("نصر", "nasr"), "مدينة نصر", "مدينة-نصر"),
+    (("مصر الجديدة", "هليوبوليس", "heliopolis", "نزهة", "شيراتون"), "مصر الجديدة", "مصر-الجديدة"),
+    (("دقى", "دقي", "مهندسين", "dokki", "mohandessin", "عجوزة"), "الدقي والمهندسين", "الدقي-والمهندسين"),
+    (("زمالك", "zamalek"), "الزمالك", "الزمالك"),
+    (("تجمع", "القاهرة الجديدة", "tagamoa", "new cairo", "رحاب", "مدينتي"), "التجمع الخامس", "التجمع"),
+    (("شبرا", "shoubra", "shubra", "ساحل", "روض الفرج"), "شبرا", "شبرا"),
+    (("وسط البلد", "التحرير", "downtown", "tahrir", "عابدين", "قصر العيني", "عتبه", "عتبة", "باب الشعرية", "ازهر", "أزهر", "سيدة زينب", "العشماوى", "جمالية"), "وسط البلد", "وسط-البلد"),
+    (("هرم", "فيصل", "haram", "faisal", "جيزة", "giza"), "الهرم والجيزة", "الهرم"),
+    (("مقطم", "mokattam"), "المقطم", "المقطم"),
+    (("شيخ زايد", "زايد", "zayed"), "الشيخ زايد", "الشيخ-زايد"),
+    (("اكتوبر", "أكتوبر", "october"), "6 أكتوبر", "6-اكتوبر"),
+    (("عين شمس", "ain shams", "مطرية"), "عين شمس", "عين-شمس"),
+    (("زيتون", "zaytoun", "أميرية", "اميرية"), "الزيتون", "الزيتون"),
+    (("حلوان", "helwan", "المعصرة"), "حلوان", "حلوان"),
+    (("عباسية", "وايلي"), "العباسية", "الوايلي-والعباسية"),
+]
+
+def match_cairo_district(text: str) -> tuple[str, str]:
+    """Matches any free text / address string to (Display Arabic Name, Vezeeta Slug)."""
+    if not text:
+        return ("القاهرة", "القاهرة")
+    t = text.lower()
+    for kw_list, display_name, slug in CAIRO_DISTRICT_PATTERNS:
+        if any(k in t for k in kw_list):
+            return (display_name, slug)
+    return ("القاهرة", "القاهرة")
+
+
+def reverse_geocode(lat: float, lon: float) -> dict:
+    """
+    Reverse geocodes latitude and longitude into display name,
+    Cairo district, and matching Vezeeta area slug.
+    """
+    try:
+        params = {
+            "key": LOCATIONIQ_API_KEY,
+            "lat": lat,
+            "lon": lon,
+            "format": "json",
+            "accept-language": "ar",
+        }
+        response = requests.get(f"{LOCATIONIQ_BASE}/reverse.php", params=params, timeout=10)
+        if response.status_code != 200:
+            return {
+                "lat": lat,
+                "lon": lon,
+                "display_name": f"{lat}, {lon}",
+                "district": "القاهرة",
+                "area_slug": "القاهرة",
+                "error": response.text,
+            }
+        data = response.json()
+        display_name = data.get("display_name", "")
+        addr = data.get("address", {})
+        
+        # Combine address fields for matching
+        combined_text = " ".join([
+            addr.get("neighbourhood", ""),
+            addr.get("suburb", ""),
+            addr.get("quarter", ""),
+            addr.get("city_district", ""),
+            addr.get("city", ""),
+            display_name,
+        ])
+        
+        district, area_slug = match_cairo_district(combined_text)
+        
+        return {
+            "lat": lat,
+            "lon": lon,
+            "display_name": display_name,
+            "district": district,
+            "area_slug": area_slug,
+            "address": addr,
+        }
+    except Exception as e:
+        return {
+            "lat": lat,
+            "lon": lon,
+            "display_name": f"{lat}, {lon}",
+            "district": "القاهرة",
+            "area_slug": "القاهرة",
+            "error": str(e),
+        }
+
+
+def get_ip_location() -> dict:
+    """
+    Detects the user's approximate location based on public IP address
+    and resolves it to a Cairo district and Vezeeta area.
+    """
+    try:
+        r = requests.get("http://ip-api.com/json", timeout=4)
+        if r.status_code == 200:
+            d = r.json()
+            if d.get("status") == "success":
+                lat = float(d.get("lat", 30.0444))
+                lon = float(d.get("lon", 31.2357))
+                res = reverse_geocode(lat, lon)
+                res["source"] = "تلقائي (IP)"
+                return res
+    except Exception:
+        pass
+    return {
+        "lat": 30.0444,
+        "lon": 31.2357,
+        "display_name": "وسط البلد، القاهرة",
+        "district": "وسط البلد",
+        "area_slug": "وسط-البلد",
+        "source": "افتراضي",
+    }
+
+
 @tool
 def get_user_coordinates(location_name: str) -> str:
     """Convert a Cairo location name into latitude and longitude."""
@@ -48,15 +166,39 @@ def get_user_coordinates(location_name: str) -> str:
             return f"⚠️ لم أتمكن من العثور على موقع: {location_name}"
 
         result = data[0]
+        lat = float(result["lat"])
+        lon = float(result["lon"])
+        display_name = result.get("display_name", location_name)
+        district, slug = match_cairo_district(display_name + " " + location_name)
         return (
-            f"location: {result.get('display_name', location_name)}\n"
-            f"latitude: {float(result['lat'])}\n"
-            f"longitude: {float(result['lon'])}"
+            f"location: {display_name}\n"
+            f"latitude: {lat}\n"
+            f"longitude: {lon}\n"
+            f"district: {district}\n"
+            f"vezeeta_area: {slug}"
         )
     except (KeyError, TypeError, ValueError) as exc:
         return f"⚠️ بيانات الموقع غير صالحة: {exc}"
     except requests.RequestException as exc:
         return f"⚠️ تعذر الاتصال بخدمة تحديد الموقع: {exc}"
+
+
+@tool
+def reverse_geocode_location(lat: float, lon: float) -> str:
+    """
+    Converts GPS coordinates (latitude and longitude) into the user's
+    Cairo neighborhood, district, and readable address using LocationIQ.
+    Use this when you have user coordinates and need to identify their area or district.
+    """
+    res = reverse_geocode(lat, lon)
+    if "error" in res and res.get("error"):
+        return f"الإحداثيات: {lat}, {lon} (تعذر استرداد العنوان التفصيلي)"
+    return (
+        f"📍 العنوان: {res['display_name']}\n"
+        f"🏙️ الحي/المنطقة: {res['district']}\n"
+        f"🔗 منطقة فيزيتا: {res['area_slug']}\n"
+        f"📌 الإحداثيات: {lat}, {lon}"
+    )
 
 
 @tool
