@@ -55,12 +55,69 @@ agent = create_cairo_care_agent()
 
 
 # =========================
-# Request Model
+# Location & Chat Models
 # =========================
+
+class UserLocation(BaseModel):
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+    area: Optional[str] = None
+    area_slug: Optional[str] = None
+    display_name: Optional[str] = None
+
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1)
     thread_id: str = Field(default="default", min_length=1)
+    user_location: Optional[UserLocation] = None
+
+
+class ResolveLocationRequest(BaseModel):
+    lat: float
+    lon: float
+
+
+class BrowserLocationReport(BaseModel):
+    thread_id: str
+    lat: float
+    lon: float
+
+
+browser_location_store: dict[str, dict] = {}
+
+
+# =========================
+# Location Endpoints
+# =========================
+
+@app.post("/api/location/resolve")
+def resolve_location_endpoint(req: ResolveLocationRequest):
+    """Resolve latitude & longitude into Cairo district and Vezeeta area slug."""
+    from location_tools import reverse_geocode
+    return reverse_geocode(req.lat, req.lon)
+
+
+@app.post("/api/location/browser")
+def report_browser_location(report: BrowserLocationReport):
+    """Receive client-side browser GPS coordinates via direct HTTP fetch."""
+    from location_tools import reverse_geocode
+    res = reverse_geocode(report.lat, report.lon)
+    res["source"] = "GPS دقيق"
+    browser_location_store[report.thread_id] = res
+    return res
+
+
+@app.get("/api/location/browser/{thread_id}")
+def get_browser_location(thread_id: str):
+    """Return latest browser-reported location for thread."""
+    return browser_location_store.get(thread_id, {})
+
+
+@app.get("/api/location/ip")
+def ip_location_endpoint():
+    """Return user location inferred from public IP."""
+    from location_tools import get_ip_location
+    return get_ip_location()
 
 
 # =========================
@@ -87,6 +144,27 @@ def health():
     }
 
 
+def _prepare_prompt_with_location(request: ChatRequest) -> str:
+    prompt_content = request.message
+    if request.user_location:
+        loc = request.user_location
+        loc_parts = []
+        if loc.area:
+            loc_parts.append(f"المنطقة/الحي: {loc.area}")
+        if loc.area_slug:
+            loc_parts.append(f"رمز فيزيتا: {loc.area_slug}")
+        if loc.lat is not None and loc.lon is not None:
+            loc_parts.append(f"الإحداثيات: lat={loc.lat}, lon={loc.lon}")
+        if loc.display_name:
+            loc_parts.append(f"العنوان: {loc.display_name}")
+        if loc_parts:
+            prompt_content = (
+                f"[معلومات موقع المستخدم الحالي المكتشف تلقائياً: {' | '.join(loc_parts)}]\n\n"
+                f"{request.message}"
+            )
+    return prompt_content
+
+
 # =========================
 # Normal Chat
 # =========================
@@ -95,13 +173,13 @@ def health():
 def chat(request: ChatRequest):
 
     try:
-
+        prompt_content = _prepare_prompt_with_location(request)
         result = agent.invoke(
             {
                 "messages": [
                     {
                         "role": "user",
-                        "content": request.message
+                        "content": prompt_content
                     }
                 ]
             },
@@ -142,13 +220,14 @@ def chat_stream(request: ChatRequest):
     def generate():
 
         try:
+            prompt_content = _prepare_prompt_with_location(request)
 
             for message_chunk, metadata in agent.stream(
                 {
                     "messages": [
                         {
                             "role": "user",
-                            "content": request.message
+                            "content": prompt_content
                         }
                     ]
                 },

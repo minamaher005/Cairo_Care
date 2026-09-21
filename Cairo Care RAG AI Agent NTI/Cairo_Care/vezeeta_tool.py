@@ -94,6 +94,17 @@ def search_vezeeta_doctors(
         top_n:     Maximum number of doctors to return, sorted by rating (default 5)
         include_sponsored: Whether to include paid/sponsored listings (default False)
     """
+    # Normalize area slug
+    try:
+        from location_tools import match_cairo_district
+        _, resolved_slug = match_cairo_district(area)
+        if resolved_slug != "القاهرة" or area.strip() in ("القاهرة", "cairo"):
+            area = resolved_slug
+        else:
+            area = area.strip().replace(" ", "-")
+    except Exception:
+        area = area.strip().replace(" ", "-")
+
     # 1. ابحث في الـ cache الأول — لو في نتائج مخزّنة ارجع بيها بدون scraping
     cache = _load_cache()
     cached = cache.get(specialty, {}).get(area, [])
