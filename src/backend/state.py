@@ -1,10 +1,11 @@
+"""State schema for Cairo Care LangGraph agent."""
 from typing import Annotated
 from typing_extensions import TypedDict
 
 try:
     from langgraph.graph.message import add_messages
-except ImportError:  # fallback لو langgraph مش متاح
-    def add_messages(left: list, right: list) -> list:  # type: ignore[misc]
+except ImportError:
+    def add_messages(left: list, right: list) -> list:
         return left + right
 
 
@@ -28,16 +29,7 @@ def merge_hospitals(existing: list[dict], new: list[dict]) -> list[dict]:
 
 class CairoState(TypedDict):
     """
-    State للـ Cairo Care LangGraph agent.
-
-    الحقول:
-        messages:  سجل المحادثة الكامل — يُدار تلقائياً بـ add_messages
-        doctors:   دكاترة مجمّعة من Vezeeta، مُزالة التكرار بـ profile_url
-                   كل dict: name, title, description, fees,
-                   rating, ratings_count, address, profile_url, sponsored
-        hospitals: مستشفيات مجمّعة من Qdrant، مُزالة التكرار بـ name
-                   كل dict: name, address, specialty, phone, website
-        query:     آخر سؤال المستخدم
+    Cairo Care LangGraph agent state.
     """
     messages:  Annotated[list, add_messages]
     doctors:   Annotated[list[dict], merge_doctors]

@@ -1,7 +1,17 @@
+import os
 import pandas as pd
-from vector_store import get_vector_store
 
-CSV_PATH = "hospitals.csv"
+try:
+    from src.backend.rag.vector_store import get_vector_store
+except ImportError:
+    from vector_store import get_vector_store
+
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+CSV_PATH = os.path.join(_ROOT, "data", "cairo_hospitals_enriched.csv")
+if not os.path.exists(CSV_PATH):
+    CSV_PATH = os.path.join(_ROOT, "data", "hospitals.csv")
+if not os.path.exists(CSV_PATH):
+    CSV_PATH = "hospitals.csv"
 
 def format_hospital_row(row) -> str:
     return (

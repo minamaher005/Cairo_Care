@@ -3,8 +3,19 @@ import math
 import requests
 from langchain.tools import tool
 
-from config import LOCATIONIQ_API_KEY, QDRANT_COLLECTION
-from vector_store import get_qdrant_client
+try:
+    from src.backend.config import LOCATIONIQ_API_KEY, QDRANT_COLLECTION
+    from src.backend.rag.vector_store import get_qdrant_client
+except ImportError:
+    try:
+        from config import LOCATIONIQ_API_KEY, QDRANT_COLLECTION
+        from vector_store import get_qdrant_client
+    except ImportError:
+        LOCATIONIQ_API_KEY = "pk.4d2409895ce6cf67da0d278af713b4d3"
+        QDRANT_COLLECTION = "hospitals"
+        def get_qdrant_client():
+            from qdrant_client import QdrantClient
+            return QdrantClient(url="http://localhost:6333")
 
 
 LOCATIONIQ_BASE = "https://us1.locationiq.com/v1"

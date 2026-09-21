@@ -13,16 +13,28 @@ from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain.chat_models import init_chat_model
 from langgraph.checkpoint.memory import InMemorySaver
-from Cairo_Care.vezeeta_tool import search_vezeeta_doctors
-from Cairo_Care.state import CairoState
-from config import OLLAMA_BASE_URL, OLLAMA_LLM_MODEL
-from location_tools import (
-    get_user_coordinates,
-    find_nearest_hospitals,
-    get_driving_route,
-    reverse_geocode_location,
-)
-from vector_store import get_vector_store
+try:
+    from src.backend.tools.vezeeta_tool import search_vezeeta_doctors
+    from src.backend.state import CairoState
+    from src.backend.config import OLLAMA_BASE_URL, OLLAMA_LLM_MODEL
+    from src.backend.tools.location_tools import (
+        get_user_coordinates,
+        find_nearest_hospitals,
+        get_driving_route,
+        reverse_geocode_location,
+    )
+    from src.backend.rag.vector_store import get_vector_store
+except ImportError:
+    from tools.vezeeta_tool import search_vezeeta_doctors
+    from state import CairoState
+    from config import OLLAMA_BASE_URL, OLLAMA_LLM_MODEL
+    from tools.location_tools import (
+        get_user_coordinates,
+        find_nearest_hospitals,
+        get_driving_route,
+        reverse_geocode_location,
+    )
+    from rag.vector_store import get_vector_store
 
 
 # ── System prompt ─────────────────────────────────────────────────────────────

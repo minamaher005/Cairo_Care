@@ -98,24 +98,37 @@ flowchart TD
 
 ```text
 Cairo_Care/
-├── Backend.py                  # Standalone FastAPI server with LangGraph agent & location APIs
-├── frontend.py                 # Streamlit UI with GPS bridge, district presets & session history
-├── location_tools.py           # District pattern matchers, LocationIQ reverse geocoder & IP resolver
-├── vezeeta_tool.py             # Vezeeta doctor scraper & district slug resolver
-├── cairo_hospitals_enriched.csv# Enriched hospital dataset (coordinates, specialties, emergency)
-├── README.md                   # Complete repository documentation
+├── src/
+│   ├── backend/                 # FastAPI server, LangGraph agent, and configurations
+│   │   ├── app.py               # Main FastAPI API with SSE streaming & geolocation routes
+│   │   ├── agent.py             # LangGraph ReAct Agent with location awareness
+│   │   ├── config.py            # Ollama & Qdrant configuration
+│   │   ├── state.py             # Agent conversation state schema
+│   │   ├── tools/               # Agent tool implementations
+│   │   │   ├── location_tools.py# Reverse geocoding & Cairo district matcher
+│   │   │   ├── vezeeta_tool.py  # Vezeeta doctor scraper tool
+│   │   │   └── vzeeta.py        # Vezeeta client & HTML parser
+│   │   └── rag/                 # Vector store retrieval & ingestion
+│   │       ├── vector_store.py  # Qdrant client connection & hybrid search
+│   │       ├── ingest_hospitals.py # Ingestion pipeline
+│   │       └── create_collection.py# Qdrant collection setup
+│   │
+│   └── frontend/                # Streamlit user interface
+│       ├── app.py               # Unified modern glassmorphic Streamlit application
+│       └── .streamlit/
+│           └── config.toml
 │
-└── Cairo Care RAG AI Agent NTI/
-    ├── agent.py                # LangGraph ReAct agent & location-aware system prompt
-    ├── api.py                  # FastAPI server with dual SSE endpoints (/chat, /chat/stream)
-    ├── frontend.py             # Synchronized Streamlit application
-    ├── location_tools.py       # LangChain-compatible geolocation tools & fallback logic
-    ├── vector_store.py         # Qdrant client connection & hybrid vector search
-    ├── ingest_hospitals.py     # Hospital data ingestion pipeline into Qdrant
-    ├── create_collection.py    # Qdrant collection schema creation script
-    ├── hospitals.csv           # Base hospital records
-    ├── test_components.py      # Component unit tests
-    └── requirements.txt        # Python dependency manifest
+├── data/                        # Datasets (cairo_hospitals_enriched.csv, hospitals.csv)
+├── docs/                        # Project documentation guides (.mdx files)
+├── tests/                       # Test suite (test_components.py)
+│
+├── Backend.py                   # Root runner (starts FastAPI backend)
+├── frontend.py                  # Root runner (starts Streamlit frontend)
+├── requirements.txt             # Python dependencies
+├── docker-compose.yml           # Qdrant Docker Compose file
+├── .env                         # Environment variables
+├── .gitignore                   # Git ignore rules
+└── README.md                    # Project documentation
 ```
 
 ---
@@ -130,7 +143,8 @@ Cairo_Care/
   ```
 - **Qdrant** vector database (running locally or via Docker):
   ```bash
-  docker run -d -p 6333:6333 -p 6334:6334 qdrant/qdrant
+  docker compose up -d
+  # or: docker run -d -p 6333:6333 -p 6334:6334 qdrant/qdrant
   ```
 
 ### 2. Installation
@@ -138,7 +152,7 @@ Clone this repository and install all required packages:
 ```bash
 git clone https://github.com/your-username/Cairo_Care.git
 cd Cairo_Care
-pip install -r "Cairo Care RAG AI Agent NTI/requirements.txt"
+pip install -r requirements.txt
 ```
 
 ### 3. Environment Variables
@@ -156,21 +170,19 @@ QDRANT_PORT=6333
 ### 4. Initialize Vector Store
 If running Qdrant for the first time, initialize and populate the collection:
 ```bash
-cd "Cairo Care RAG AI Agent NTI"
-python create_collection.py
-python ingest_hospitals.py
-cd ..
+python -m src.backend.rag.create_collection
+python -m src.backend.rag.ingest_hospitals
 ```
 
 ### 5. Running the Application
 
 #### Step A: Launch FastAPI Backend
 ```bash
-# Option 1: Using the root backend
+# Option 1: Root entrypoint
 uvicorn Backend:app --reload --port 8000
 
-# Option 2: Using the NTI package backend
-uvicorn api:app --reload --port 8000 --app-dir "Cairo Care RAG AI Agent NTI"
+# Option 2: Direct module
+uvicorn src.backend.app:app --reload --port 8000
 ```
 
 #### Step B: Launch Streamlit Frontend

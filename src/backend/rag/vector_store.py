@@ -3,12 +3,20 @@ from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
 
-from config import (
-    OLLAMA_BASE_URL,
-    OLLAMA_EMBEDDING_MODEL,
-    QDRANT_COLLECTION,
-    QDRANT_URL,
-)
+try:
+    from src.backend.config import (
+        OLLAMA_BASE_URL,
+        OLLAMA_EMBEDDING_MODEL,
+        QDRANT_COLLECTION,
+        QDRANT_URL,
+    )
+except ImportError:
+    from config import (
+        OLLAMA_BASE_URL,
+        OLLAMA_EMBEDDING_MODEL,
+        QDRANT_COLLECTION,
+        QDRANT_URL,
+    )
 
 
 def get_embeddings():
